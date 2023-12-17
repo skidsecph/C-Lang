@@ -1,0 +1,136 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_MEDICINES 3
+
+// Structure to represent a medicine
+struct Medicine {
+    char name[50];
+    int quantity;
+};
+
+// Structure to represent the pharmacy
+struct Pharmacy {
+    struct Medicine inventory[MAX_MEDICINES];
+    struct Medicine cart[MAX_MEDICINES];
+    int totalCost;
+};
+
+// Function prototypes
+void displayMenu(struct Pharmacy *pharmacy);
+void selectMedicine(struct Pharmacy *pharmacy);
+void displayCart(struct Pharmacy *pharmacy);
+void processPayment(struct Pharmacy *pharmacy);
+
+int main() {
+    struct Pharmacy pharmacy = {
+        .inventory = {{"Paracetamol", 10}, {"Ibuprofen", 15}, {"Aspirin", 20}},
+        .totalCost = 0
+    };
+
+    int choice;
+    do {
+        printf("\n===== Pharmacy System =====\n");
+        printf("1. Display Menu\n");
+        printf("2. Choose Medicine\n");
+        printf("3. Display Cart\n");
+        printf("4. Process Payment\n");
+        printf("5. Exit\n");
+        
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                displayMenu(&pharmacy);
+                break;
+            case 2:
+                selectMedicine(&pharmacy);
+                break;
+            case 3:
+                displayCart(&pharmacy);
+                break;
+            case 4:
+                processPayment(&pharmacy);
+                break;
+            case 5:
+                printf("Exiting Pharmacy System. Thank you!\n");
+                break;
+            default:
+                printf("Invalid choice. Please try again.\n");
+        }
+    } while (choice != 5);
+
+    return 0;
+}
+
+// Function to display the pharmacy menu
+void displayMenu(struct Pharmacy *pharmacy) {
+    printf("===== Pharmacy Menu =====\n");
+    for (int i = 0; i < MAX_MEDICINES; ++i) {
+        printf("%s - %d available\n", pharmacy->inventory[i].name, pharmacy->inventory[i].quantity);
+    }
+}
+
+// Function to select a medicine and add it to the cart
+void selectMedicine(struct Pharmacy *pharmacy) {
+    char medicineName[50];
+    int quantity;
+
+    printf("Enter the medicine you want: ");
+    scanf("%s", medicineName);
+
+    // Search for the medicine in the inventory
+    for (int i = 0; i < MAX_MEDICINES; ++i) {
+        if (strcmp(medicineName, pharmacy->inventory[i].name) == 0 && pharmacy->inventory[i].quantity > 0) {
+            printf("Enter quantity: ");
+            scanf("%d", &quantity);
+
+            if (quantity <= pharmacy->inventory[i].quantity) {
+                strcpy(pharmacy->cart[i].name, medicineName);
+                pharmacy->cart[i].quantity = quantity;
+                pharmacy->totalCost += quantity * 5; // Assuming each medicine costs $5
+                pharmacy->inventory[i].quantity -= quantity;
+                printf("%d %s(s) added to your cart.\n", quantity, medicineName);
+            } else {
+                printf("Sorry, only %d %s(s) available.\n", pharmacy->inventory[i].quantity, medicineName);
+            }
+
+            return;
+        }
+    }
+
+    printf("Invalid choice or out of stock. Please try again.\n");
+}
+
+// Function to display the contents of the cart
+void displayCart(struct Pharmacy *pharmacy) {
+    printf("===== Your Cart =====\n");
+    for (int i = 0; i < MAX_MEDICINES; ++i) {
+        if (pharmacy->cart[i].quantity > 0) {
+            printf("%s - %d\n", pharmacy->cart[i].name, pharmacy->cart[i].quantity);
+        }
+    }
+    printf("Total Cost: $%d\n", pharmacy->totalCost);
+}
+
+// Function to process payment
+void processPayment(struct Pharmacy *pharmacy) {
+    printf("Total Amount: $%d\n", pharmacy->totalCost);
+
+    int payment;
+    printf("Enter payment amount: ");
+    scanf("%d", &payment);
+
+    if (payment >= pharmacy->totalCost) {
+        int change = payment - pharmacy->totalCost;
+        printf("Payment successful. Change: $%d\n", change);
+
+        // Clear the cart and reset total cost
+        memset(pharmacy->cart, 0, sizeof(pharmacy->cart));
+        pharmacy->totalCost = 0;
+    } else {
+        printf("Insufficient payment. Please try again.\n");
+    }
+}
